@@ -18,11 +18,12 @@ class AuthSettings(BaseSettings):
 
 auth_settings = AuthSettings()
 
-class AppSettings(BaseSettings):
-    APP_HOST: str = ''
-    APP_PORT: int = 0
-    
-app_settings = AppSettings()
+class SecuritySettings(BaseSettings):
+    PASSWORD_BYTES: int = 0
+    PASSWORD_ALGORITHM: str = 'algorithm'
+    PASSWORD_PEPPER: bytes = b'1111'
+
+security_settings = SecuritySettings()
         
 def get_database_token() -> str:
     return (f"postgresql+asyncpg://{db_settings.DB_USERNAME}:{db_settings.DB_PASSWORD}@"

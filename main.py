@@ -1,12 +1,9 @@
-import asyncio
 from glob import glob
 from os.path import dirname, join, isfile, basename
 from importlib import import_module
 
 from fastapi import FastAPI
-
-from settings import app_settings
-from models import async_create
+from models import async_create, async_drop
 
 app = FastAPI(root_path='/api')
 

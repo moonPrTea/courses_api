@@ -1,11 +1,17 @@
-from werkzeug.security import generate_password_hash, check_password_hash
+from typing import Tuple
+import os
+import hashlib
+import hmac
 
-# --> класс для создания и проверки хэша паролей
-class PasswordFunctions:
-    def create_password(self, password):
-        return generate_password_hash(password)
+from settings import security_settings
 
-    def check_password(self, password_hash, password):
-        return check_password_hash(password_hash, password)
-
-password_functions = PasswordFunctions()
+def hash_psw(password: str) -> Tuple[bytes, bytes]:
+    salt = os.urandom(security_settings.PASSWORD_BYTES)
+    psw_hash = hashlib.pbkdf2_hmac(security_settings.PASSWORD_ALGORITHM, password.encode() + security_settings.PASSWORD_PEPPER, salt, 10000)
+    return salt, psw_hash
+    
+def is_correct_psw(salt: bytes, psw_hash: str, password: str):
+    return hmac.compare_digest(
+            psw_hash, 
+            hashlib.pbkdf2_hmac(security_settings.PASSWORD_ALGORITHM, password.encode() + security_settings.PASSWORD_PEPPER, salt, 10000)
+        )

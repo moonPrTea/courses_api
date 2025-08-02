@@ -3,5 +3,5 @@ from pydantic import BaseModel
 
 
 class LoginSerializer(BaseModel):
-    username: Optional[str]
+    email: Optional[str]
     password: Optional[str]

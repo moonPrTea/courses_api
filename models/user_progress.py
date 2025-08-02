@@ -1,5 +1,6 @@
 from sqlalchemy import ForeignKey, BOOLEAN, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.sql import func
 
 from .base import Base
 
@@ -10,4 +11,4 @@ class UserProgress(Base): # --> будет использовано для по�
     course_id: Mapped[int] = mapped_column(ForeignKey("courses.id"))
     content_id: Mapped[int] = mapped_column(ForeignKey("content.id"))
     completed: Mapped[bool] = mapped_column(BOOLEAN)
-    completed_date: Mapped[str] = mapped_column(TIMESTAMP(timezone=False))
+    completed_date: Mapped[str] = mapped_column(TIMESTAMP(timezone=False), server_default=func.now())
