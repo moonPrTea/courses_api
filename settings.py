@@ -24,8 +24,17 @@ class SecuritySettings(BaseSettings):
     PASSWORD_PEPPER: bytes = b'1111'
 
 security_settings = SecuritySettings()
+
+class RedisSettings(BaseSettings): 
+    REDIS_HOST: str = 'host'
+    REDIS_PORT: int = 0
+    REDIS_DB: int = 0 
+    
+redis_settings = RedisSettings()
         
 def get_database_token() -> str:
     return (f"postgresql+asyncpg://{db_settings.DB_USERNAME}:{db_settings.DB_PASSWORD}@"
             f"{db_settings.DB_ADRESS}:{db_settings.DB_PORT}/{db_settings.DB_NAME}")
-    
+
+def get_redis_token() -> str:
+    return (f"redis://{redis_settings.REDIS_HOST}:{redis_settings.REDIS_PORT}/{redis_settings.REDIS_DB}")

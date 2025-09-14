@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 
 class UserSerializer(BaseModel):
+    id: Optional[int]
     username: Optional[str]
     email: Optional[str]
     description: Optional[str] = None

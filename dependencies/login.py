@@ -19,7 +19,6 @@ from . import Users
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 async def check_user_credentials(login_information: LoginSerializer, session: AsyncSession = Depends(get_connection)) -> UserSerializer: #--> проверка ввода корректных данных
-    print(session)
     
     query = select(Users).where(Users.email == login_information.email)
     result = await session.execute(query)
@@ -28,19 +27,16 @@ async def check_user_credentials(login_information: LoginSerializer, session: As
     if not current_user: 
         return None
     
-    print(current_user.salt, current_user.password)
-    print(login_information.password)
-    
     if not is_correct_psw(current_user.salt,  current_user.password, login_information.password):
         return None
     
-    print(current_user.username)
-    
     return UserSerializer(
+        id = current_user.id,
         username=current_user.username, password=current_user.password, email=current_user.email, 
         description=current_user.description, user_status_id=current_user.user_status_id,
         active=current_user.active, created_at=None, admin = current_user.admin
     )
+    
 
 async def set_token(main_data: dict, #--> создание токена со временем, указанным в env
                            current_timedelta: Optional[timedelta] = None):
@@ -77,11 +73,9 @@ async def get_current_user( #--> получение данных о текуще
         raise exception
     
     return UserSerializer(
+        id = current_user.id,
         username=current_user.username, password=current_user.password, email=current_user.email, 
         description=current_user.description, user_status_id=current_user.user_status_id,
         active=current_user.active, created_at=current_user.created_at, admin = current_user.admin
     )
-
-    
-    
     

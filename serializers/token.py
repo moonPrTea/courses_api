@@ -10,4 +10,8 @@ class TokenData(BaseModel):
 class Token(BaseModel):
     token: Optional[str]
     token_type: Optional[str] = 'main'
+    expires_time: Optional[int] = 0
     token_data: Optional[TokenData]
+    
+class T(BaseModel):
+    token: str

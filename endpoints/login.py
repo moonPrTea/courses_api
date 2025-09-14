@@ -1,14 +1,14 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import ORJSONResponse
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import timedelta
+
 
 from dependencies import check_user_credentials, set_token, get_connection
 from serializers import UserSerializer, LoginSerializer
 from settings import auth_settings
-from . import Token, TokenData
+from . import Token, TokenData, redis_functions
 
 router = APIRouter(tags=['login'], prefix='/login')
 
@@ -27,6 +27,11 @@ async def check_user(login_information: LoginSerializer, current_user: Annotated
         main_data={"username": current_user.username},
         current_timedelta=token_expire_time
     )
+    
+    await redis_functions.save_token(main_token, user_id=current_user.id)
+    # --> сохранение токена в redis
+    user_id = await redis_functions.get_user(token=main_token)
+    
     
     # --> запрос с количеством активных курсов будет реализован позднее
     return Token(token=main_token, token_type="bearer", 
