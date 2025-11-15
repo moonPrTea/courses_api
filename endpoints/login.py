@@ -1,13 +1,17 @@
+from datetime import timedelta
+import select
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import ORJSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import timedelta
 
-
-from dependencies import check_user_credentials, set_token, get_connection
-from serializers import UserSerializer, LoginSerializer
+from helpers.login import check_input_email
+from models import Users
+from dependencies import check_user_credentials, get_connection, set_token
+from serializers import LoginSerializer, UserSerializer, LoginEmail
 from settings import auth_settings
+
 from . import Token, TokenData, redis_functions
 
 router = APIRouter(tags=['login'], prefix='/login')
@@ -37,3 +41,19 @@ async def check_user(login_information: LoginSerializer, current_user: Annotated
     return Token(token=main_token, token_type="bearer", 
                  token_data=TokenData(username=current_user.username, email=current_user.email, 
                                       admin=current_user.admin))
+
+@router.post('/check_login_email')
+async def check_email(email: LoginEmail, session: AsyncSession = Depends(get_connection)):
+    print(email)
+    query = select(Users.id).where(Users.email == email.email)
+    result = (await session.execute(query))
+    user = result.first()
+    
+    if user:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, 
+            detail="Пользователь с данной почтой уже существует"
+        )
+    
+    valid_email = await check_input_email(email.email)
+    return valid_email

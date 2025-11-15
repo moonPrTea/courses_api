@@ -1,19 +1,18 @@
-from typing import Optional
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from serializers import LoginSerializer
+from serializers import LoginSerializer, UserSerializer
+from settings import auth_settings
 
+from . import Users
 from .database import get_connection
 from .password import is_correct_psw
-from settings import auth_settings
-from serializers import UserSerializer
-from . import Users
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
@@ -54,6 +53,7 @@ async def get_current_user( #--> получение данных о текуще
     token: str = Depends(oauth2_scheme),
     session: AsyncSession = Depends(get_connection)
 ) -> UserSerializer:
+    
     exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, 
             detail = "Not validated credentials"

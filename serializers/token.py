@@ -13,5 +13,5 @@ class Token(BaseModel):
     expires_time: Optional[int] = 0
     token_data: Optional[TokenData]
     
-class T(BaseModel):
+class TModel(BaseModel):
     token: str

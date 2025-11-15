@@ -1,7 +1,8 @@
 # -> сохранение текущего токена в redis
-from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 import json
+
 from redis.asyncio import ConnectionPool, Redis
 from redis.exceptions import ConnectionError
 
@@ -11,7 +12,6 @@ class RedisFunctions:
     def __init__(self) -> None:
         self.url = get_redis_token()
         self._pool: ConnectionPool = self._init_pool()
-        print(self._pool)
     
     def _init_pool(self) -> ConnectionPool:
         return ConnectionPool.from_url(url=self.url, encoding='utf-8',

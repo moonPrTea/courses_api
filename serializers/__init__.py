@@ -1,4 +1,4 @@
-from .login import LoginSerializer
+from .login import LoginSerializer, LoginEmail
+from .registration import RegistrationSerializer, ValidationAnswer, Username, Email, Password
+from .token import Token, TokenData, TModel
 from .user import UserSerializer
-from .token import Token, TokenData, T
-from .registration import RegistrationSerializer

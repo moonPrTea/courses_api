@@ -1,15 +1,52 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import ORJSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi.responses import ORJSONResponse
 
-from serializers import RegistrationSerializer
 from dependencies import get_connection, hash_psw
+from helpers import check_input_email, check_input_username, check_input_password
 from models import Users
+from serializers import RegistrationSerializer, Username, Email, Password
 
 router = APIRouter(tags=['registration'], prefix='/registration')
 
-@router.post('/create_user', response_class=ORJSONResponse) #--> маршрут регистрации находится в разработке
+@router.post('/check_email')
+async def check_email(email: Email, session: AsyncSession = Depends(get_connection)):
+    query = select(Users).where(Users.email == email.email)
+    result = (await session.execute(query))
+    user = result.first()
+    
+    if user:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, 
+            detail="Пользователь с данной почтой уже существует"
+        )
+    
+    valid_email = await check_input_email(email.email)
+    print(valid_email)
+    return valid_email
+
+@router.post('/check_username')
+async def check_username(username: Username, session: AsyncSession = Depends(get_connection)):
+    query = select(Users).where(Users.username == username.username)
+    result = await session.execute(query)
+    user = result.first()
+    if user: 
+        raise HTTPException(
+            status_code = status.HTTP_409_CONFLICT, 
+            detail='Пользователь с данным username существует'
+        )
+    
+    valid_username = await check_input_username(username.username)  
+    return valid_username
+
+
+@router.post('/check_password')
+async def check_password(password: Password, session: AsyncSession = Depends(get_connection)):
+    return await check_input_password(password.password)
+
+
+@router.post('/create_user', response_class=ORJSONResponse)  # --> маршрут регистрации находится в разработке
 async def create_user(registration_information: RegistrationSerializer, session: AsyncSession = Depends(get_connection)):
     query = select(Users).where(Users.email == registration_information.email)
     result = (await session.execute(query))
@@ -17,7 +54,7 @@ async def create_user(registration_information: RegistrationSerializer, session:
     if user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, 
-            detail="User with current email already exists"
+            detail="Пользователь с данной почтой существует"
         )
     
     salt, psw = hash_psw(registration_information.password)
@@ -31,32 +68,6 @@ async def create_user(registration_information: RegistrationSerializer, session:
     if not user_id:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, 
-            detail="Something went wrong. User can't be created"
+            detail="Что-то пошло не так. Аккаунт не был создан"
         )
     return {"user_id": user_id}
-
-
-@router.post('/check_username', response_class=ORJSONResponse)
-async def check_username(username: str, session: AsyncSession = Depends(get_connection)):
-    query = select(Users).where(Users.username == username)
-    result = await session.execute(query)
-    user = result.first()
-    if user: 
-        raise HTTPException(
-            status_code = status.HTTP_400_BAD_REQUEST, 
-            detail='User with current username already exists'
-        )
-    
-    return {'exists': False}
-
-@router.post('check_email', response_class=ORJSONResponse)
-async def check_email(email: str, session: AsyncSession = Depends(get_connection)):
-    query = select(Users).where(Users.email == email)
-    result = (await session.execute(query))
-    user = result.first()
-    if user:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, 
-            detail="User with current email already exists"
-        )
-    return {'exists': False}
